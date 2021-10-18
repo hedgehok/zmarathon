@@ -9,7 +9,10 @@ const player1 = {
     weapon: ['weapon1', 'weapon2', 'weapon3'],
     attack: function() {
         console.log(this.name + ' fight...')
-    }
+    },
+    changeHP: changeHP,
+    elHP: elHP,
+    renderHP: renderHP
 };
 
 const player2 = {
@@ -20,7 +23,10 @@ const player2 = {
     weapon: ['weapon1', 'weapon2', 'weapon3'],
     attack: function() {
         console.log(this.name + ' fight...')
-    }
+    },
+    changeHP: changeHP,
+    elHP: elHP,
+    renderHP: renderHP
 };
 
 function createElement(tag, className) {
@@ -53,17 +59,22 @@ function createPlayer(player) {
     return $player;
 }
 
-function randomHP() {
-    return Math.ceil(Math.random() * 20);
+function createReloadButton() {
+    const $wrap = createElement('div', 'reloadWrap');
+    const $button = createElement('button', 'button');
+    $button.innerText = 'Restart';
+    $button.addEventListener('click', () => { window.location.reload() });
+    $wrap.appendChild($button);
+    $arenas.appendChild($wrap);
 }
 
-function changeHP(player) {
-    const $playerLife = document.querySelector('.player' + player.player + ' .life');
-    player.hp -= randomHP();
-    if (player.hp <= 0) {
-        player.hp = 0;
-    }
-    $playerLife.style.width = player.hp + '%';
+function randomHP(roof) {
+    return Math.ceil(Math.random() * roof);
+}
+
+function fight(player) {
+    player.changeHP(randomHP(20));
+    player.renderHP(player.elHP());
 }
 
 function checkResult() { 
@@ -89,11 +100,27 @@ function endGame(winner) {
 
     $randomButton.removeEventListener('click', randomButtonHandler);
     $randomButton.disabled = true;
+    createReloadButton();
+}
+
+function changeHP(damage) {
+    this.hp -= damage;
+    if (this.hp <= 0) {
+        this.hp = 0;
+    }
+}
+
+function elHP() {
+    return document.querySelector('.player' + this.player + ' .life')
+}
+
+function renderHP(elem) {
+    elem.style.width = this.hp + '%';
 }
 
 function randomButtonHandler() {
-    changeHP(player1);
-    changeHP(player2);
+    fight(player1);
+    fight(player2);
     checkResult();
 }
 
