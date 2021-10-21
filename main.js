@@ -1,5 +1,14 @@
 const $arenas = document.querySelector('.arenas');
 const $randomButton = document.querySelector('button.button');
+const $formFight = document.querySelector('form.control');
+$formFight.addEventListener('submit', formFightSubmit);
+
+const HIT = {
+    head: 30,
+    body: 25,
+    foot: 20,
+}
+const ATTACK = ['head', 'body', 'foot'];
 
 const player1 = {
     player: 1,
@@ -10,9 +19,7 @@ const player1 = {
     attack: function() {
         console.log(this.name + ' fight...')
     },
-    changeHP: changeHP,
-    elHP: elHP,
-    renderHP: renderHP
+    changeHP, elHP, renderHP
 };
 
 const player2 = {
@@ -24,9 +31,7 @@ const player2 = {
     attack: function() {
         console.log(this.name + ' fight...')
     },
-    changeHP: changeHP,
-    elHP: elHP,
-    renderHP: renderHP
+    changeHP, elHP, renderHP
 };
 
 function createElement(tag, className) {
@@ -72,9 +77,9 @@ function randomHP(roof) {
     return Math.ceil(Math.random() * roof);
 }
 
-function fight(player) {
-    player.changeHP(randomHP(20));
-    player.renderHP(player.elHP());
+function fight(player, hit) {
+    player.changeHP(hit/*randomHP(20)*/);
+    player.renderHP();
 }
 
 function checkResult() { 
@@ -115,16 +120,54 @@ function elHP() {
 }
 
 function renderHP(elem) {
-    elem.style.width = this.hp + '%';
+    this.elHP().style.width = this.hp + '%';
 }
 
 function randomButtonHandler() {
-    fight(player1);
-    fight(player2);
+    // fight(player1);
+    // fight(player2);
+    // checkResult();
+}
+
+function enemyAttack() {
+    const hit = ATTACK[randomHP(3) - 1];
+    const defence = ATTACK[randomHP(3) - 1];
+    return {
+        value: randomHP(HIT[hit]),
+        hit,
+        defence
+    }
+}
+
+function formFightSubmit(event) {
+    event.preventDefault();
+    console.dir($formFight);
+    const enemy = enemyAttack();
+
+    const attack = {};
+    for (let item of $formFight) {
+        if (item.checked && item.name === 'hit') {
+            attack.value = randomHP(HIT[item.value]);
+            attack.hit = item.value;
+        }
+
+        if (item.checked && item.name === 'defence') {
+            attack.defence = item.value;
+        }
+
+        item.checked = false;
+    }
+
+    if (attack.hit !== enemy.defence) {
+        fight(player2, attack.value);
+    }
+    if (enemy.hit !== attack.defence) {
+        fight(player1, enemy.value);
+    }
     checkResult();
 }
 
-$randomButton.addEventListener('click', randomButtonHandler);
+//$randomButton.addEventListener('click', randomButtonHandler);
 
 $arenas.appendChild(createPlayer(player1));
 $arenas.appendChild(createPlayer(player2));
