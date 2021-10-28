@@ -1,60 +1,45 @@
 import { createElement, randomHP } from './utils.js';
 import { HIT, ATTACK } from './const.js';
 
-function changeHP(damage) {
-    this.hp -= damage;
-    if (this.hp <= 0) {
-        this.hp = 0;
+export class Player {
+    constructor(props) {
+        this.player = props.player,
+        this.name = props.name,
+        this.hp = props.hp,
+        this.img = props.img
+    }
+
+    changeHP = (damage) => {
+        this.hp -= damage;
+        if (this.hp <= 0) {
+            this.hp = 0;
+        }
+    }
+    
+    elHP = () => {
+        return document.querySelector(`.player${this.player} .life`)
+    }
+    
+    renderHP = (elem) => {
+        this.elHP().style.width = this.hp + '%';
     }
 }
 
-function elHP() {
-    return document.querySelector('.player' + this.player + ' .life')
-}
-
-function renderHP(elem) {
-    this.elHP().style.width = this.hp + '%';
-}
-
-export const player1 = {
-    player: 1,
-    name: 'Kitana',
-    hp: 100,
-    img: 'http://reactmarathon-api.herokuapp.com/assets/kitana.gif',
-    weapon: ['weapon1', 'weapon2', 'weapon3'],
-    attack: function() {
-        console.log(this.name + ' fight...')
-    },
-    changeHP, elHP, renderHP
-}
-
-export const player2 = {
-    player: 2,
-    name: 'Sonya',
-    hp: 100,
-    img: 'http://reactmarathon-api.herokuapp.com/assets/sonya.gif',
-    weapon: ['weapon1', 'weapon2', 'weapon3'],
-    attack: function() {
-        console.log(this.name + ' fight...')
-    },
-    changeHP, elHP, renderHP
-}
-
-export function createPlayer(player) {
-    const $player = createElement('div', `player${player.player}`);
+export function createPlayer({ player, hp, name, img }) {
+    const $player = createElement('div', `player${player}`);
     const $progressbar = createElement('div', 'progressbar');
     const $life = createElement('div', 'life');
-    $life.style.width = player.hp + '%';
+    $life.style.width = hp + '%';
     $progressbar.appendChild($life);
 
     const $name = createElement('div', 'name');
-    $name.innerText = player.name;
+    $name.innerText = name;
     $progressbar.appendChild($name);
 
     const $character = createElement('div', 'character');
 
     const $img = createElement('img');
-    $img.src = player.img;
+    $img.src = img;
     $character.appendChild($img);
 
     $player.appendChild($progressbar);
