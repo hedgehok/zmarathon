@@ -1,15 +1,36 @@
-import { createElement, getTime, randomHP } from './utils.js';
+import { createElement, getTime, getRandom } from './utils.js';
 import { LOGS, ATTACK, HIT } from './const.js';
 import { Player } from './player.js';
 
 export default class Game {
-    start = () => {
+    getPlayers = async () => {
+        const data = fetch('https://reactmarathon-api.herokuapp.com/api/mk/players').then(res => res.json());
+        return data;
+    }
+
+    getRandomPlayer = async () => {
+        const data = fetch('https://reactmarathon-api.herokuapp.com/api/mk/player/choose').then(res => res.json());
+        return data;
+    }
+
+    getFightResults = async ({hit, defence}) => {
+        const data = fetch('http://reactmarathon-api.herokuapp.com/api/mk/player/fight', {
+            method: 'POST',
+            body: JSON.stringify({
+                hit,
+                defence,
+            })
+        }).then(res => res.json());
+        return data;
+    }
+
+    start = async () => {
         const $arenas = document.querySelector('.arenas');
         const $formFight = document.querySelector('form.control');
         const $chat = document.querySelector('.chat');
 
         function generateLogs(type, { name: name1 } = {}, { name: name2, hp } = {}, hit = null) {
-            let text = LOGS[type][randomHP(LOGS[type].length) - 1];
+            let text = LOGS[type][getRandom(LOGS[type].length) - 1];
             switch (type) {
                 case 'start':
                     text = text.replace('[player1]', name1).replace('[player2]', name2).replace('[time]', getTime());
@@ -59,21 +80,10 @@ export default class Game {
             player.renderHP();
         }
         
-        function enemyAttack() {
-            const hit = ATTACK[randomHP(3) - 1];
-            const defence = ATTACK[randomHP(3) - 1];
-            return {
-                value: randomHP(HIT[hit]),
-                hit,
-                defence
-            }
-        }
-        
-        function playerAttack(form) {
+        function getPlayerAttack() {
             const attack = {};
-            for (let item of form) {
+            for (let item of $formFight) {
                 if (item.checked && item.name === 'hit') {
-                    attack.value = randomHP(HIT[item.value]);
                     attack.hit = item.value;
                 }
         
@@ -123,38 +133,40 @@ export default class Game {
             createReloadButton();
         }
 
+        // const players = await this.getPlayers();
+        // console.log(players);
+        // const p1 = players[getRandom(players.length) - 1];
+        // const p2 = players[getRandom(players.length) - 1];
+
+        const p1 = await this.getRandomPlayer();
+        const p2 = await this.getRandomPlayer();
+
         const player1 = new Player({
+            ...p1,
             player: 1,
-            name: 'Kitana',
-            hp: 100,
-            img: 'http://reactmarathon-api.herokuapp.com/assets/kitana.gif'
+            rootSelector: 'arenas'
         });
 
         const player2 = new Player({
+            ...p2,
             player: 2,
-            name: 'Sonya',
-            hp: 100,
-            img: 'http://reactmarathon-api.herokuapp.com/assets/sonya.gif'
+            rootSelector: 'arenas'
         });
 
         $arenas.appendChild(createPlayer(player1));
         $arenas.appendChild(createPlayer(player2));
-        $formFight.addEventListener('submit', (e) => {
+        $formFight.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const enemy = enemyAttack();
-            const attack = playerAttack($formFight);
-            // console.log('#### enemy', enemy);
-            // console.log('#### attack', attack);
-
-            if (attack.hit !== enemy.defence) {
-                fight(player2, attack.value);
-                generateLogs('hit', player1, player2, attack.value);
+            const { player1: p1, player2: p2 } = await this.getFightResults(getPlayerAttack());
+            if (p1.hit !== p2.defence) {
+                fight(player2, p1.value);
+                generateLogs('hit', player1, player2, p1.value);
             } else {
                 generateLogs('defence', player1, player2);
             }
-            if (enemy.hit !== attack.defence) {
-                fight(player1, enemy.value);
-                generateLogs('hit', player2, player1, enemy.value);
+            if (p2.hit !== p1.defence) {
+                fight(player1, p2.value);
+                generateLogs('hit', player2, player1, p2.value);
             } else {
                 generateLogs('defence', player2, player1);
             }
