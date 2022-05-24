@@ -11,4 +11,4 @@ export function getTime() {
     return `${formatValue(d.getHours())}:${formatValue(d.getMinutes())}:${formatValue(d.getSeconds())}`;
 }
 
-export const randomHP = (roof) => Math.ceil(Math.random() * roof);
+export const getRandom = (roof) => Math.ceil(Math.random() * roof);
